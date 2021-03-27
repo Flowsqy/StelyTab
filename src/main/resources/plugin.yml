@@ -2,7 +2,7 @@ name: StelyTab
 author: Flowsqy
 version: ${project.version}
 main: fr.flowsqy.stelytab.StelyTabPlugin
-api-version: "1.16"
+api-version: "1.13"
 depend:
   - TeamPacketManager
   - Vault
