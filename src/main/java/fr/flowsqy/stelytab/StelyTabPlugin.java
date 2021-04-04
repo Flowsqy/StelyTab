@@ -39,16 +39,16 @@ public class StelyTabPlugin extends JavaPlugin {
         this.messages = new Messages(initFile(dataFolder, "messages.yml", true));
 
         final RegisteredServiceProvider<Permission> service = Bukkit.getServicesManager().getRegistration(Permission.class);
-        if(service == null) {
-            messages.sendMessage(Bukkit.getConsoleSender(), "util.no-perm-plugin");
+        if (service == null) {
+            messages.sendMessage(Bukkit.getConsoleSender(), "plugin.no-perm-plugin");
             Bukkit.getPluginManager().disablePlugin(this);
             return;
         }
 
         permission = service.getProvider();
 
-        if(!permission.hasGroupSupport()) {
-            messages.sendMessage(Bukkit.getConsoleSender(), "util.group-not-supported");
+        if (!permission.hasGroupSupport()) {
+            messages.sendMessage(Bukkit.getConsoleSender(), "plugin.group-not-supported");
             Bukkit.getPluginManager().disablePlugin(this);
             return;
         }
@@ -57,6 +57,7 @@ public class StelyTabPlugin extends JavaPlugin {
         teamPacketManager = teamPacketManagerPlugin.getTeamPacketManager();
 
         nameManager = new NameManager(this, initFile(dataFolder, "names.yml", false));
+        nameManager.load();
     }
 
     private boolean checkDataFolder(File dataFolder) {
@@ -69,11 +70,10 @@ public class StelyTabPlugin extends JavaPlugin {
         final File file = new File(dataFolder, fileName);
         if (!file.exists()) {
             try {
-                if(copy)
+                if (copy)
                     Files.copy(Objects.requireNonNull(getResource(fileName)), file.toPath());
-                else
-                    if(!file.createNewFile())
-                        throw new IOException("Can not create the file: " + file);
+                else if (!file.createNewFile())
+                    throw new IOException("Can not create the file: " + file);
             } catch (IOException ignored) {
             }
         }

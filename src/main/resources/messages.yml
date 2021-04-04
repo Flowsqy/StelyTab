@@ -1,5 +1,8 @@
 prefix: "&7[&5StelyTab&7]&f"
 
-util:
+plugin:
   no-perm-plugin: "%prefix% &cIl n'y a pas de plugin de permission"
   group-not-supported: "%prefix% &cL'implémentation des permissions ne supporte pas les groupes. Installez un plugin qui gère cette fonctionnalité"
+
+config:
+  awkward-key: "La section %key% dans le fichier names.yml est étrange, ce n'est pas une section (un noeud) de configuration"
