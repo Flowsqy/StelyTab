@@ -1,6 +1,7 @@
 package fr.flowsqy.stelytab;
 
 import fr.flowsqy.stelytab.io.Messages;
+import fr.flowsqy.stelytab.io.NameManager;
 import fr.flowsqy.teampacketmanager.TeamPacketManager;
 import fr.flowsqy.teampacketmanager.TeamPacketManagerPlugin;
 import net.milkbowl.vault.permission.Permission;
@@ -21,6 +22,7 @@ public class StelyTabPlugin extends JavaPlugin {
     private Messages messages;
     private Permission permission;
     private TeamPacketManager teamPacketManager;
+    private NameManager nameManager;
 
     @Override
     public void onEnable() {
@@ -34,7 +36,7 @@ public class StelyTabPlugin extends JavaPlugin {
             return;
         }
 
-        this.messages = new Messages(initFile(dataFolder, "messages.yml"));
+        this.messages = new Messages(initFile(dataFolder, "messages.yml", true));
 
         final RegisteredServiceProvider<Permission> service = Bukkit.getServicesManager().getRegistration(Permission.class);
         if(service == null) {
@@ -53,6 +55,8 @@ public class StelyTabPlugin extends JavaPlugin {
 
         final TeamPacketManagerPlugin teamPacketManagerPlugin = JavaPlugin.getPlugin(TeamPacketManagerPlugin.class);
         teamPacketManager = teamPacketManagerPlugin.getTeamPacketManager();
+
+        nameManager = new NameManager(this, initFile(dataFolder, "names.yml", false));
     }
 
     private boolean checkDataFolder(File dataFolder) {
@@ -61,11 +65,15 @@ public class StelyTabPlugin extends JavaPlugin {
         return dataFolder.mkdirs();
     }
 
-    private YamlConfiguration initFile(File dataFolder, String fileName) {
+    private YamlConfiguration initFile(File dataFolder, String fileName, boolean copy) {
         final File file = new File(dataFolder, fileName);
         if (!file.exists()) {
             try {
-                Files.copy(Objects.requireNonNull(getResource(fileName)), file.toPath());
+                if(copy)
+                    Files.copy(Objects.requireNonNull(getResource(fileName)), file.toPath());
+                else
+                    if(!file.createNewFile())
+                        throw new IOException("Can not create the file: " + file);
             } catch (IOException ignored) {
             }
         }
@@ -83,5 +91,9 @@ public class StelyTabPlugin extends JavaPlugin {
 
     public TeamPacketManager getTeamPacketManager() {
         return teamPacketManager;
+    }
+
+    public NameManager getNameManager() {
+        return nameManager;
     }
 }
