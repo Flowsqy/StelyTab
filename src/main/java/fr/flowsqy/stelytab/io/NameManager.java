@@ -128,7 +128,7 @@ public class NameManager implements Listener {
                 .id(teamData.getId() + player.getName())
                 .color(teamData.getColor())
                 .displayName(teamData.getDisplayName() == null ?
-                        null : teamData.getDisplayName().replace("%target", player.getName()))
+                        null : teamData.getDisplayName().replace("%player%", player.getName()))
                 .prefix(teamData.getPrefix())
                 .suffix(teamData.getSuffix())
                 .create();
