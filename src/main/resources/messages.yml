@@ -1,0 +1,5 @@
+prefix: "&7[&5StelyTab&7]&f"
+
+util:
+  no-perm-plugin: "%prefix% &cIl n'y a pas de plugin de permission"
+  group-not-supported: "%prefix% &cL'implémentation des permissions ne supporte pas les groupes. Installez un plugin qui gère cette fonctionnalité"
