@@ -2,16 +2,22 @@ package fr.flowsqy.stelytab.io;
 
 import fr.flowsqy.stelytab.StelyTabPlugin;
 import fr.flowsqy.teampacketmanager.commons.TeamData;
+import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.YamlConfiguration;
+import org.bukkit.entity.Player;
+import org.bukkit.event.EventHandler;
+import org.bukkit.event.EventPriority;
+import org.bukkit.event.Listener;
+import org.bukkit.event.player.PlayerJoinEvent;
 
 import java.util.*;
 import java.util.function.Consumer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-public class NameManager {
+public class NameManager implements Listener {
 
     private final StelyTabPlugin plugin;
     private final YamlConfiguration configuration;
@@ -21,6 +27,7 @@ public class NameManager {
         this.plugin = plugin;
         this.configuration = configuration;
         this.groupData = new HashMap<>();
+        Bukkit.getPluginManager().registerEvents(this, plugin);
     }
 
     private static void getAllPrefixes(List<String> prefixes, String current, int length, int limit) {
@@ -104,6 +111,28 @@ public class NameManager {
                         }
                     }
                 });
+    }
+
+    @EventHandler(priority = EventPriority.MONITOR)
+    public void onJoin(PlayerJoinEvent event){
+        if(plugin.getTeamPacketManager().isLocked())
+            return;
+        final Player player = event.getPlayer();
+        final String group = plugin.getPermission().getPrimaryGroup(player);
+        if(group == null)
+            return;
+        final TeamData teamData = groupData.get(group);
+        if(teamData == null)
+            return;
+        final TeamData data = new TeamData.Builder()
+                .id(teamData.getId() + player.getName())
+                .color(teamData.getColor())
+                .displayName(teamData.getDisplayName() == null ?
+                        null : teamData.getDisplayName().replace("%target", player.getName()))
+                .prefix(teamData.getPrefix())
+                .suffix(teamData.getSuffix())
+                .create();
+        plugin.getTeamPacketManager().applyTeamData(event.getPlayer(), data);
     }
 
 }
