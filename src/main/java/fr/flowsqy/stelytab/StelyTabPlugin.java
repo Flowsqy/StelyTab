@@ -36,7 +36,7 @@ public class StelyTabPlugin extends JavaPlugin {
             return;
         }
 
-        this.messages = new Messages(initFile(dataFolder, "messages.yml", true));
+        this.messages = new Messages(initFile(dataFolder, "messages.yml"));
 
         final RegisteredServiceProvider<Permission> service = Bukkit.getServicesManager().getRegistration(Permission.class);
         if (service == null) {
@@ -56,7 +56,7 @@ public class StelyTabPlugin extends JavaPlugin {
         final TeamPacketManagerPlugin teamPacketManagerPlugin = JavaPlugin.getPlugin(TeamPacketManagerPlugin.class);
         teamPacketManager = teamPacketManagerPlugin.getTeamPacketManager();
 
-        nameManager = new NameManager(this, initFile(dataFolder, "names.yml", false));
+        nameManager = new NameManager(this, initFile(dataFolder, "names.yml"));
         nameManager.load();
     }
 
@@ -66,14 +66,11 @@ public class StelyTabPlugin extends JavaPlugin {
         return dataFolder.mkdirs();
     }
 
-    private YamlConfiguration initFile(File dataFolder, String fileName, boolean copy) {
+    private YamlConfiguration initFile(File dataFolder, String fileName) {
         final File file = new File(dataFolder, fileName);
         if (!file.exists()) {
             try {
-                if (copy)
-                    Files.copy(Objects.requireNonNull(getResource(fileName)), file.toPath());
-                else if (!file.createNewFile())
-                    throw new IOException("Can not create the file: " + file);
+                Files.copy(Objects.requireNonNull(getResource(fileName)), file.toPath());
             } catch (IOException ignored) {
             }
         }

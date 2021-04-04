@@ -1,0 +1,17 @@
+#Une section est de la forme:
+#nomdugrade:
+#  priority: 0
+#  color: "6"
+#  displayname: ""
+#  prefix: ""
+#  suffix: ""
+#
+#Où:
+#'priority' est un entier qui indique la priorité du grade dans le tab.
+#Le groupe avec la plus grande priorité est en haut du tab et ainsi de suite par ordre décroissant.
+#'color' est la couleur du pseudo
+#'displayname' est le nom affiché dans la hotbar en mode spectateur (supporte les couleurs)
+#'prefix' est le préfix (supporte les couleurs)
+#'suffix' est le suffix (supporte les couleurs)
+#
+#Le 'nomdugrade' doit être parfaitement identique à celui précisé dans la configuration du plugin de permission
