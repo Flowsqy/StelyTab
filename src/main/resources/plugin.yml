@@ -6,3 +6,10 @@ api-version: "1.13"
 depend:
   - TeamPacketManager
   - Vault
+commands:
+  stelytab:
+    permission: stelytab.command
+    description: Root command for the StelyTab plugin
+    usage: /<command> <SubCommand>
+    aliases:
+      - tab

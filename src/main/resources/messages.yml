@@ -6,3 +6,6 @@ plugin:
 
 config:
   awkward-key: "La section %key% dans le fichier names.yml est étrange, ce n'est pas une section (un noeud) de configuration"
+
+command:
+  no-perm: "%prefix% &cTu n'as pas la permission de faire cette commande"

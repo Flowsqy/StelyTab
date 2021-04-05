@@ -1,5 +1,6 @@
 package fr.flowsqy.stelytab;
 
+import fr.flowsqy.stelytab.commands.StelyTabCommand;
 import fr.flowsqy.stelytab.io.Messages;
 import fr.flowsqy.stelytab.io.NameManager;
 import fr.flowsqy.teampacketmanager.TeamPacketManager;
@@ -58,6 +59,8 @@ public class StelyTabPlugin extends JavaPlugin {
 
         nameManager = new NameManager(this, initFile(dataFolder, "names.yml"));
         nameManager.load();
+
+        new StelyTabCommand(this);
     }
 
     private boolean checkDataFolder(File dataFolder) {
