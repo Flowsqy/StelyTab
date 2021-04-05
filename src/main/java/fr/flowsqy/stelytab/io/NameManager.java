@@ -114,15 +114,15 @@ public class NameManager implements Listener {
     }
 
     @EventHandler(priority = EventPriority.MONITOR)
-    public void onJoin(PlayerJoinEvent event){
-        if(plugin.getTeamPacketManager().isLocked())
+    public void onJoin(PlayerJoinEvent event) {
+        if (plugin.getTeamPacketManager().isLocked())
             return;
         final Player player = event.getPlayer();
         final String group = plugin.getPermission().getPrimaryGroup(player);
-        if(group == null)
+        if (group == null)
             return;
         final TeamData teamData = groupData.get(group);
-        if(teamData == null)
+        if (teamData == null)
             return;
         final TeamData data = new TeamData.Builder()
                 .id(teamData.getId() + player.getName())
