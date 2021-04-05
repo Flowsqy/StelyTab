@@ -9,3 +9,9 @@ config:
 
 command:
   no-perm: "%prefix% &cTu n'as pas la permission de faire cette commande"
+  help:
+    reload: "%prefix% &6/tab reload"
+    refresh: "%prefix% &6/tab refresh"
+  success:
+    reload: "%prefix% &6Configuration rechargée"
+    refresh: "%prefix% &6Les noms ont été rafraichis"

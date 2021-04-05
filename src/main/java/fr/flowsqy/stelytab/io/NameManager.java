@@ -134,5 +134,4 @@ public class NameManager implements Listener {
                 .create();
         plugin.getTeamPacketManager().applyTeamData(event.getPlayer(), data);
     }
-
 }

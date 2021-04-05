@@ -12,6 +12,7 @@ import java.util.*;
 
 public class StelyTabCommand implements TabExecutor {
 
+    private final static String PERMISSION_PREFIX = "stelytab.command.";
     private final static String RELOAD = "reload";
     private final static String REFRESH = "refresh";
 
@@ -30,7 +31,29 @@ public class StelyTabCommand implements TabExecutor {
 
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
-        return false;
+        if (args.length != 1) {
+            return sendHelp(sender);
+        }
+        final String arg = args[0].toLowerCase(Locale.ROOT);
+        if (arg.equals("rl") || arg.equals(RELOAD)) {
+            nameManager.load();
+            messages.sendMessage(sender, "command.success." + RELOAD);
+            return true;
+        }
+        if (arg.equals("rf") || arg.equals(REFRESH)) {
+            // TODO Refresh logic
+            messages.sendMessage(sender, "command.success." + REFRESH);
+            return true;
+        }
+        return sendHelp(sender);
+    }
+
+    private boolean sendHelp(CommandSender sender) {
+        if (sender.hasPermission(PERMISSION_PREFIX + RELOAD))
+            messages.sendMessage(sender, "command.help." + RELOAD);
+        if (sender.hasPermission(PERMISSION_PREFIX + REFRESH))
+            messages.sendMessage(sender, "command.help." + REFRESH);
+        return true;
     }
 
     @Override
@@ -56,7 +79,7 @@ public class StelyTabCommand implements TabExecutor {
 
         final List<String> completions = new ArrayList<>(2);
         for (String subCommand : possibilities) {
-            if (sender.hasPermission("stelytab.command." + subCommand))
+            if (sender.hasPermission(PERMISSION_PREFIX + subCommand))
                 completions.add(subCommand);
         }
         return completions;
