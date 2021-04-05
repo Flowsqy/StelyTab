@@ -13,3 +13,19 @@ commands:
     usage: /<command> <SubCommand>
     aliases:
       - tab
+permissions:
+  stelytab.command:
+    description: Root command permission
+  stelytab.command.*:
+    description: Permission that give access too all stelytab's commands
+    children:
+      stelytab.command.reload: true
+      stelytab.command.refresh: true
+  stelytab.command.reload:
+    description: Reload SubCommand permission
+    children:
+      stelytab.command: true
+  stelytab.command.refresh:
+    description: Refresh SubCommand permission
+    children:
+      stelytab.command: true

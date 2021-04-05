@@ -8,11 +8,12 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.command.PluginCommand;
 import org.bukkit.command.TabExecutor;
 
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
 
 public class StelyTabCommand implements TabExecutor {
+
+    private final static String RELOAD = "reload";
+    private final static String REFRESH = "refresh";
 
     private final Messages messages;
     private final NameManager nameManager;
@@ -34,6 +35,30 @@ public class StelyTabCommand implements TabExecutor {
 
     @Override
     public List<String> onTabComplete(CommandSender sender, Command command, String alias, String[] args) {
-        return Collections.emptyList();
+        if (args.length != 1)
+            return Collections.emptyList();
+        final String arg = args[0].toLowerCase(Locale.ROOT);
+
+        final List<String> possibilities;
+        if (arg.isEmpty()) {
+            possibilities = new ArrayList<>(Arrays.asList(RELOAD, REFRESH));
+        } else {
+            possibilities = new ArrayList<>(2);
+            if (RELOAD.startsWith(arg)) {
+                possibilities.add(RELOAD);
+            }
+            if (REFRESH.startsWith(arg)) {
+                possibilities.add(REFRESH);
+            }
+        }
+        if (possibilities.isEmpty())
+            return Collections.emptyList();
+
+        final List<String> completions = new ArrayList<>(2);
+        for (String subCommand : possibilities) {
+            if (sender.hasPermission("stelytab.command." + subCommand))
+                completions.add(subCommand);
+        }
+        return completions;
     }
 }
