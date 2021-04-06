@@ -36,7 +36,7 @@ public class StelyTabCommand implements TabExecutor {
         }
         final String arg = args[0].toLowerCase(Locale.ROOT);
         if (arg.equals("rl") || arg.equals(RELOAD)) {
-            nameManager.load();
+            nameManager.reload();
             messages.sendMessage(sender, "command.success." + RELOAD);
             return true;
         }

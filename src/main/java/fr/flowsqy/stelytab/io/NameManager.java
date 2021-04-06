@@ -43,7 +43,15 @@ public class NameManager implements Listener {
     }
 
     public void load() {
-        groupData.clear();
+        fillGroupData();
+    }
+
+    public void reload() {
+        this.groupData.clear();
+        fillGroupData();
+    }
+
+    private void fillGroupData() {
         final Map<Integer, Set<TeamData>> tempData = new HashMap<>();
         final Logger logger = plugin.getLogger();
         final String awkwardKeyMessage = ChatColor.stripColor(plugin.getMessages().getMessage("config.awkward-key"));
@@ -115,8 +123,6 @@ public class NameManager implements Listener {
 
     @EventHandler(priority = EventPriority.MONITOR)
     public void onJoin(PlayerJoinEvent event) {
-        if (plugin.getTeamPacketManager().isLocked())
-            return;
         final Player player = event.getPlayer();
         final String group = plugin.getPermission().getPrimaryGroup(player);
         if (group == null)
