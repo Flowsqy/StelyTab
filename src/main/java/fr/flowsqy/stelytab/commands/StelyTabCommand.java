@@ -41,7 +41,7 @@ public class StelyTabCommand implements TabExecutor {
             return true;
         }
         if (arg.equals("rf") || arg.equals(REFRESH)) {
-            // TODO Refresh logic
+            nameManager.refresh();
             messages.sendMessage(sender, "command.success." + REFRESH);
             return true;
         }

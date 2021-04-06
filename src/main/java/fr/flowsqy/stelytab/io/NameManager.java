@@ -51,6 +51,12 @@ public class NameManager implements Listener {
         fillGroupData();
     }
 
+    public void refresh() {
+        for (Player player : Bukkit.getOnlinePlayers()) {
+            updatePlayer(player);
+        }
+    }
+
     private void fillGroupData() {
         final Map<Integer, Set<TeamData>> tempData = new HashMap<>();
         final Logger logger = plugin.getLogger();
@@ -123,7 +129,10 @@ public class NameManager implements Listener {
 
     @EventHandler(priority = EventPriority.MONITOR)
     public void onJoin(PlayerJoinEvent event) {
-        final Player player = event.getPlayer();
+        updatePlayer(event.getPlayer());
+    }
+
+    private void updatePlayer(Player player) {
         final String group = plugin.getPermission().getPrimaryGroup(player);
         if (group == null)
             return;
@@ -138,6 +147,7 @@ public class NameManager implements Listener {
                 .prefix(teamData.getPrefix())
                 .suffix(teamData.getSuffix())
                 .create();
-        plugin.getTeamPacketManager().applyTeamData(event.getPlayer(), data);
+        plugin.getTeamPacketManager().applyTeamData(player, data);
     }
+
 }
