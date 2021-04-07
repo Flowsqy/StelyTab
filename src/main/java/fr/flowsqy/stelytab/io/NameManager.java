@@ -5,6 +5,7 @@ import fr.flowsqy.teampacketmanager.commons.TeamData;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.configuration.ConfigurationSection;
+import org.bukkit.configuration.InvalidConfigurationException;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -12,6 +13,8 @@ import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerJoinEvent;
 
+import java.io.File;
+import java.io.IOException;
 import java.util.*;
 import java.util.function.Consumer;
 import java.util.logging.Level;
@@ -21,11 +24,13 @@ public class NameManager implements Listener {
 
     private final StelyTabPlugin plugin;
     private final YamlConfiguration configuration;
+    private final File file;
     private final Map<String, TeamData> groupData;
 
-    public NameManager(StelyTabPlugin plugin, YamlConfiguration configuration) {
+    public NameManager(StelyTabPlugin plugin, YamlConfiguration configuration, File file) {
         this.plugin = plugin;
         this.configuration = configuration;
+        this.file = file;
         this.groupData = new HashMap<>();
         Bukkit.getPluginManager().registerEvents(this, plugin);
     }
@@ -48,6 +53,11 @@ public class NameManager implements Listener {
 
     public void reload() {
         this.groupData.clear();
+        try {
+            configuration.load(file);
+        } catch (IOException | InvalidConfigurationException e) {
+            plugin.getLogger().log(Level.SEVERE, "Can not read the names.yml", e);
+        }
         fillGroupData();
     }
 

@@ -57,7 +57,7 @@ public class StelyTabPlugin extends JavaPlugin {
         final TeamPacketManagerPlugin teamPacketManagerPlugin = JavaPlugin.getPlugin(TeamPacketManagerPlugin.class);
         teamPacketManager = teamPacketManagerPlugin.getTeamPacketManager();
 
-        nameManager = new NameManager(this, initFile(dataFolder, "names.yml"));
+        nameManager = new NameManager(this, initFile(dataFolder, "names.yml"), new File(dataFolder, "names.yml"));
         nameManager.load();
 
         new StelyTabCommand(this);
