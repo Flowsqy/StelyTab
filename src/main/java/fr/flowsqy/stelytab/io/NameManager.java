@@ -1,12 +1,15 @@
 package fr.flowsqy.stelytab.io;
 
 import fr.flowsqy.stelytab.StelyTabPlugin;
+import fr.flowsqy.teampacketmanager.commons.ApplicableTeamData;
 import fr.flowsqy.teampacketmanager.commons.TeamData;
+import net.milkbowl.vault.permission.Permission;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.InvalidConfigurationException;
 import org.bukkit.configuration.file.YamlConfiguration;
+import org.bukkit.entity.HumanEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
@@ -19,6 +22,7 @@ import java.util.*;
 import java.util.function.Consumer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 
 public class NameManager implements Listener {
 
@@ -47,6 +51,18 @@ public class NameManager implements Listener {
         }
     }
 
+    private static int getPrefixLength(int prefixesCount) {
+        int prefixLength = 0;
+        int j = 1;
+        for (int i = 1; i < prefixesCount; i++) {
+            if ((j *= 95) >= prefixesCount) {
+                prefixLength = i;
+                break;
+            }
+        }
+        return prefixLength;
+    }
+
     public void load() {
         fillGroupData();
     }
@@ -62,8 +78,8 @@ public class NameManager implements Listener {
     }
 
     public void refresh() {
-        for (Player player : Bukkit.getOnlinePlayers()) {
-            updatePlayer(player);
+        for(Map.Entry<String, TeamData> entry : groupData.entrySet()){
+            updateGroup(entry.getKey(), entry.getValue());
         }
     }
 
@@ -106,14 +122,7 @@ public class NameManager implements Listener {
 
         final List<String> priorityPrefixes = new ArrayList<>();
         final int prefixesCount = tempData.size();
-        int prefixLength = 0;
-        int j = 1;
-        for (int i = 1; i < prefixesCount; i++) {
-            if ((j *= 95) >= prefixesCount) {
-                prefixLength = i;
-                break;
-            }
-        }
+        final int prefixLength = getPrefixLength(prefixesCount);
 
         getAllPrefixes(priorityPrefixes, "", prefixLength, prefixesCount);
 
@@ -139,25 +148,45 @@ public class NameManager implements Listener {
 
     @EventHandler(priority = EventPriority.MONITOR)
     public void onJoin(PlayerJoinEvent event) {
-        updatePlayer(event.getPlayer());
-    }
-
-    private void updatePlayer(Player player) {
+        final Player player = event.getPlayer();
         final String group = plugin.getPermission().getPrimaryGroup(player);
         if (group == null)
             return;
         final TeamData teamData = groupData.get(group);
         if (teamData == null)
             return;
-        final TeamData data = new TeamData.Builder()
-                .id(teamData.getId() + player.getName())
-                .color(teamData.getColor())
-                .displayName(teamData.getDisplayName() == null ?
-                        null : teamData.getDisplayName().replace("%player%", player.getName()))
-                .prefix(teamData.getPrefix())
-                .suffix(teamData.getSuffix())
-                .create();
-        plugin.getTeamPacketManager().applyTeamData(player, data);
+        updateGroup(group, teamData);
+    }
+
+    private void updateGroup(String group, TeamData teamData) {
+        final List<Player> players = new ArrayList<>();
+        final Permission permission = plugin.getPermission();
+        for (Player onlinePlayer : Bukkit.getOnlinePlayers()) {
+            if (group.equals(permission.getPrimaryGroup(onlinePlayer))) {
+                players.add(onlinePlayer);
+            }
+        }
+        final List<String> priorityPrefixes = new ArrayList<>();
+        final int prefixesCount = players.size();
+        final int prefixLength = getPrefixLength(prefixesCount);
+
+        getAllPrefixes(priorityPrefixes, "", prefixLength, prefixesCount);
+
+        final Iterator<String> prefixIterator = priorityPrefixes.iterator();
+
+        final List<ApplicableTeamData> applicableList = new ArrayList<>(players.size());
+        for (Player onlinePlayer : players.stream().sorted(Comparator.comparing(HumanEntity::getName)).collect(Collectors.toList())) {
+            final TeamData data = new TeamData.Builder()
+                    .id(teamData.getId() + prefixIterator.next())
+                    .color(teamData.getColor())
+                    .displayName(teamData.getDisplayName() == null ?
+                            null : teamData.getDisplayName().replace("%player%", onlinePlayer.getName()))
+                    .prefix(teamData.getPrefix())
+                    .suffix(teamData.getSuffix())
+                    .create();
+            applicableList.add(new ApplicableTeamData(onlinePlayer, data));
+        }
+        plugin.getTeamPacketManager().applyTeamData(applicableList);
     }
 
 }
