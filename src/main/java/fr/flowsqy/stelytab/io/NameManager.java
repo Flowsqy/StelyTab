@@ -9,7 +9,6 @@ import org.bukkit.ChatColor;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.InvalidConfigurationException;
 import org.bukkit.configuration.file.YamlConfiguration;
-import org.bukkit.entity.HumanEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
@@ -22,20 +21,21 @@ import java.util.*;
 import java.util.function.Consumer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import java.util.stream.Collectors;
 
 public class NameManager implements Listener {
 
     private final StelyTabPlugin plugin;
     private final YamlConfiguration configuration;
     private final File file;
-    private final Map<String, TeamData> groupData;
+    private final Map<Integer, List<GroupData>> priorityData;
+    private final Map<String, Integer> groupPriority;
 
     public NameManager(StelyTabPlugin plugin, YamlConfiguration configuration, File file) {
         this.plugin = plugin;
         this.configuration = configuration;
         this.file = file;
-        this.groupData = new HashMap<>();
+        this.priorityData = new HashMap<>();
+        this.groupPriority = new HashMap<>();
         Bukkit.getPluginManager().registerEvents(this, plugin);
     }
 
@@ -68,7 +68,8 @@ public class NameManager implements Listener {
     }
 
     public void reload() {
-        this.groupData.clear();
+        this.priorityData.clear();
+        this.groupPriority.clear();
         try {
             configuration.load(file);
         } catch (IOException | InvalidConfigurationException e) {
@@ -78,15 +79,16 @@ public class NameManager implements Listener {
     }
 
     public void refresh() {
-        for(Map.Entry<String, TeamData> entry : groupData.entrySet()){
-            updateGroup(entry.getKey(), entry.getValue());
+        for (List<GroupData> groupDataList : priorityData.values()) {
+            updatePriority(groupDataList);
         }
     }
 
     private void fillGroupData() {
-        final Map<Integer, Set<TeamData>> tempData = new HashMap<>();
+        final Map<Integer, Set<GroupData>> tempData = new HashMap<>();
         final Logger logger = plugin.getLogger();
         final String awkwardKeyMessage = ChatColor.stripColor(plugin.getMessages().getMessage("config.awkward-key"));
+        // Register all data by priority
         for (String key : configuration.getKeys(false)) {
             final ConfigurationSection configurationSection = configuration.getConfigurationSection(key);
             if (configurationSection == null) {
@@ -107,40 +109,51 @@ public class NameManager implements Listener {
             if (displayName != null)
                 displayName = ChatColor.translateAlternateColorCodes('&', displayName);
             final TeamData data = new TeamData.Builder()
-                    .id(key)
+                    .id(TeamData.DEFAULT_TEAM_ID)
                     .color(color)
                     .prefix(prefix)
                     .suffix(suffix)
                     .displayName(displayName)
                     .create();
-            final Set<TeamData> dataSet = tempData.computeIfAbsent(priority, k -> new HashSet<>());
-            dataSet.add(data);
+            final GroupData groupData = new GroupData(key, data);
+            final Set<GroupData> dataSet = tempData.computeIfAbsent(priority, k -> new HashSet<>());
+            dataSet.add(groupData);
         }
 
         if (tempData.isEmpty())
             return;
 
+        // Generate all prefixes
         final List<String> priorityPrefixes = new ArrayList<>();
         final int prefixesCount = tempData.size();
         final int prefixLength = getPrefixLength(prefixesCount);
 
         getAllPrefixes(priorityPrefixes, "", prefixLength, prefixesCount);
 
-        final Comparator<Map.Entry<Integer, Set<TeamData>>> comparator = Comparator.comparingInt(Map.Entry::getKey);
+        final Comparator<Map.Entry<Integer, Set<GroupData>>> comparator = Comparator.comparingInt(Map.Entry::getKey);
 
+        // Register all correctly
         tempData.entrySet().stream()
                 .sorted(comparator.reversed())
-                .forEachOrdered(new Consumer<Map.Entry<Integer, Set<TeamData>>>() {
+                .forEachOrdered(new Consumer<Map.Entry<Integer, Set<GroupData>>>() {
 
                     final Iterator<String> characterIterator = priorityPrefixes.iterator();
 
                     @Override
-                    public void accept(Map.Entry<Integer, Set<TeamData>> integerSetEntry) {
+                    public void accept(Map.Entry<Integer, Set<GroupData>> entry) {
+                        // Group priority prefix
                         final String idPrefix = characterIterator.next();
-                        for (TeamData data : integerSetEntry.getValue()) {
-                            final String groupName = data.getId();
-                            data.setId(idPrefix);
-                            groupData.put(groupName, data);
+                        // Group data list for this priority
+                        final List<GroupData> groupDataList = new ArrayList<>();
+                        priorityData.put(entry.getKey(), groupDataList);
+                        // For all data with same priority prefix
+                        for (GroupData data : entry.getValue()) {
+                            // Set id
+                            data.getTeamData().setId(idPrefix);
+                            // Register priority for the group name
+                            groupPriority.put(data.getGroupName(), entry.getKey());
+                            // Register groupdata for the priority
+                            groupDataList.add(data);
                         }
                     }
                 });
@@ -152,20 +165,29 @@ public class NameManager implements Listener {
         final String group = plugin.getPermission().getPrimaryGroup(player);
         if (group == null)
             return;
-        final TeamData teamData = groupData.get(group);
-        if (teamData == null)
+        final Integer priority = groupPriority.get(group);
+        if (priority == null)
             return;
-        updateGroup(group, teamData);
+        final List<GroupData> teamDataList = priorityData.get(priority);
+        if (teamDataList == null)
+            return;
+        updatePriority(teamDataList);
     }
 
-    private void updateGroup(String group, TeamData teamData) {
-        final List<Player> players = new ArrayList<>();
+    private void updatePriority(List<GroupData> groupDataList) {
+        final Map<Player, TeamData> players = new HashMap<>();
         final Permission permission = plugin.getPermission();
-        for (Player onlinePlayer : Bukkit.getOnlinePlayers()) {
-            if (group.equals(permission.getPrimaryGroup(onlinePlayer))) {
-                players.add(onlinePlayer);
+        // For all groups of the priority
+        for (GroupData groupData : groupDataList) {
+            // Check for all players if there are in the group
+            final String group = groupData.getGroupName();
+            for (Player onlinePlayer : Bukkit.getOnlinePlayers()) {
+                if (group.equals(permission.getPrimaryGroup(onlinePlayer))) {
+                    players.put(onlinePlayer, groupData.getTeamData());
+                }
             }
         }
+        // Generate all prefixes for alphabetical order
         final List<String> priorityPrefixes = new ArrayList<>();
         final int prefixesCount = players.size();
         final int prefixLength = getPrefixLength(prefixesCount);
@@ -175,18 +197,63 @@ public class NameManager implements Listener {
         final Iterator<String> prefixIterator = priorityPrefixes.iterator();
 
         final List<ApplicableTeamData> applicableList = new ArrayList<>(players.size());
-        for (Player onlinePlayer : players.stream().sorted(Comparator.comparing(HumanEntity::getName)).collect(Collectors.toList())) {
-            final TeamData data = new TeamData.Builder()
-                    .id(teamData.getId() + prefixIterator.next())
-                    .color(teamData.getColor())
-                    .displayName(teamData.getDisplayName() == null ?
-                            null : teamData.getDisplayName().replace("%player%", onlinePlayer.getName()))
-                    .prefix(teamData.getPrefix())
-                    .suffix(teamData.getSuffix())
-                    .create();
-            applicableList.add(new ApplicableTeamData(onlinePlayer, data));
-        }
+        // Generate all team info with prefix for all players
+        players.entrySet().stream()
+                .sorted(Comparator.comparing(entry -> entry.getKey().getName()))
+                .forEachOrdered(entry -> {
+                    final Player player = entry.getKey();
+                    final TeamData teamData = entry.getValue();
+                    final TeamData data = new TeamData.Builder()
+                            .id(teamData.getId() + prefixIterator.next())
+                            .color(teamData.getColor())
+                            .displayName(teamData.getDisplayName() == null ?
+                                    null : teamData.getDisplayName().replace("%player%", player.getName()))
+                            .prefix(teamData.getPrefix())
+                            .suffix(teamData.getSuffix())
+                            .create();
+                    applicableList.add(new ApplicableTeamData(player, data));
+                });
         plugin.getTeamPacketManager().applyTeamData(applicableList);
+    }
+
+    private final static class GroupData {
+
+        private final String groupName;
+        private final TeamData teamData;
+
+        public GroupData(String groupName, TeamData teamData) {
+            this.groupName = groupName;
+            this.teamData = teamData;
+        }
+
+        public String getGroupName() {
+            return groupName;
+        }
+
+        public TeamData getTeamData() {
+            return teamData;
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) return true;
+            if (o == null || getClass() != o.getClass()) return false;
+            GroupData groupData = (GroupData) o;
+            return Objects.equals(groupName, groupData.groupName) && Objects.equals(teamData, groupData.teamData);
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(groupName, teamData);
+        }
+
+        @Override
+        public String toString() {
+            return "GroupData{" +
+                    "groupName='" + groupName + '\'' +
+                    ", teamData=" + teamData +
+                    '}';
+        }
     }
 
 }
