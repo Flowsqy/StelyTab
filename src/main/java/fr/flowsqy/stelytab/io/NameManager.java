@@ -3,6 +3,7 @@ package fr.flowsqy.stelytab.io;
 import fr.flowsqy.stelytab.StelyTabPlugin;
 import fr.flowsqy.teampacketmanager.commons.ApplicableTeamData;
 import fr.flowsqy.teampacketmanager.commons.TeamData;
+import fr.flowsqy.teampacketmanager.exception.TeamIdException;
 import net.milkbowl.vault.permission.Permission;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
@@ -14,9 +15,11 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerJoinEvent;
+import org.bukkit.event.player.PlayerQuitEvent;
 
-import java.io.File;
-import java.io.IOException;
+import java.io.*;
+import java.sql.Timestamp;
+import java.time.Instant;
 import java.util.*;
 import java.util.function.Consumer;
 import java.util.logging.Level;
@@ -213,7 +216,40 @@ public class NameManager implements Listener {
                             .create();
                     applicableList.add(new ApplicableTeamData(player, data));
                 });
-        plugin.getTeamPacketManager().applyTeamData(applicableList);
+        try {
+            plugin.getTeamPacketManager().applyTeamData(applicableList);
+        } catch (TeamIdException e) {
+            final File dataFolder = plugin.getDataFolder();
+            final File errorFolder = new File(dataFolder, "error");
+            if (!errorFolder.exists()) {
+                if (!errorFolder.mkdir()) {
+                    throw new RuntimeException("Can not create the error folder");
+                }
+            }
+            final File errorFile = new File(errorFolder, UUID.randomUUID() + ".txt");
+            final PrintWriter printWriter;
+            try {
+                final BufferedWriter writer = new BufferedWriter(new FileWriter(errorFile));
+                printWriter = new PrintWriter(writer);
+            } catch (IOException ioException) {
+                throw new RuntimeException(ioException);
+            }
+
+            printWriter.println(Timestamp.from(Instant.now()));
+            printWriter.println(e.getMessage());
+            e.printStackTrace(printWriter);
+            final StringBuilder builder = new StringBuilder();
+            for (ApplicableTeamData applicable : applicableList) {
+                builder.append("\n").append(applicable.getPlayer().getName()).append(":").append(applicable.getTeamData());
+            }
+            printWriter.println("Id list of priority:" + builder);
+            final StringBuilder playerGrades = new StringBuilder();
+            for (final Player player : Bukkit.getOnlinePlayers()) {
+                playerGrades.append("\n").append(player.getName()).append(":").append(permission.getPrimaryGroup(player));
+            }
+            printWriter.println("Group id and connected players : " + playerGrades);
+            printWriter.close();
+        }
     }
 
     private final static class GroupData {
