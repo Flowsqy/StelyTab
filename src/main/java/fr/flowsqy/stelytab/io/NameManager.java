@@ -219,6 +219,7 @@ public class NameManager implements Listener {
         try {
             plugin.getTeamPacketManager().applyTeamData(applicableList);
         } catch (TeamIdException e) {
+            // Error logging
             final File dataFolder = plugin.getDataFolder();
             final File errorFolder = new File(dataFolder, "error");
             if (!errorFolder.exists()) {
@@ -249,6 +250,10 @@ public class NameManager implements Listener {
             }
             printWriter.println("Group id and connected players : " + playerGrades);
             printWriter.close();
+
+            // Clean send
+            plugin.getTeamPacketManager().cleanData();
+            plugin.getTeamPacketManager().applyTeamData(applicableList);
         }
     }
 
