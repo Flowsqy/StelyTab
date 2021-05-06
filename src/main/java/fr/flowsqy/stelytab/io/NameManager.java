@@ -15,7 +15,6 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerJoinEvent;
-import org.bukkit.event.player.PlayerQuitEvent;
 
 import java.io.*;
 import java.sql.Timestamp;
@@ -218,6 +217,7 @@ public class NameManager implements Listener {
                 });
         try {
             plugin.getTeamPacketManager().applyTeamData(applicableList);
+            throw new TeamIdException("COUCOU");
         } catch (TeamIdException e) {
             // Error logging
             final File dataFolder = plugin.getDataFolder();
@@ -252,6 +252,7 @@ public class NameManager implements Listener {
             printWriter.close();
 
             // Clean send
+            System.out.println(applicableList);
             plugin.getTeamPacketManager().cleanData();
             plugin.getTeamPacketManager().applyTeamData(applicableList);
         }
