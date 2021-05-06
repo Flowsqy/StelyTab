@@ -35,11 +35,6 @@
             <scope>provided</scope>
         </dependency>
         <dependency>
-            <groupId>fr.flowsqy.teampacketmanager</groupId>
-            <artifactId>teampacketmanager</artifactId>
-            <version>1.0.0</version>
-        </dependency>
-        <dependency>
             <groupId>com.github.MilkBowl</groupId>
             <artifactId>VaultAPI</artifactId>
             <version>1.7</version>
