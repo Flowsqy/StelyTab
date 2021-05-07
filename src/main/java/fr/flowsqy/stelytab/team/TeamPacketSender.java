@@ -2,6 +2,7 @@ package fr.flowsqy.stelytab.team;
 
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
+import org.bukkit.entity.Player;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
@@ -237,6 +238,36 @@ public class TeamPacketSender {
             playersField.set(packet, players);
             methodField.set(packet, Method.CREATE.getMethod());
             return packet;
+        } catch (ReflectiveOperationException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    /**
+     * Get the player connection
+     *
+     * @param player The player to get the connection of
+     * @return The player connection
+     */
+    public static Object getConnection(Player player) {
+        try {
+            return playerConnectionField.get(getHandlePlayerMethod.invoke(player));
+        } catch (ReflectiveOperationException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    /**
+     * Send packet to players
+     *
+     * @param connections The connection of the players
+     * @param packet      The packet to send
+     */
+    public static void send(Iterable<Object> connections, Object packet) {
+        try {
+            for (Object connection : connections) {
+                sendPacketMethod.invoke(connection, packet);
+            }
         } catch (ReflectiveOperationException e) {
             throw new RuntimeException(e);
         }

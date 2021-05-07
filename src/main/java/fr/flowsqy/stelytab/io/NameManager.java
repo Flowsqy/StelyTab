@@ -2,11 +2,13 @@ package fr.flowsqy.stelytab.io;
 
 import fr.flowsqy.stelytab.StelyTabPlugin;
 import fr.flowsqy.stelytab.team.Name;
+import fr.flowsqy.stelytab.team.TeamPacketSender;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.InvalidConfigurationException;
 import org.bukkit.configuration.file.YamlConfiguration;
+import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
@@ -18,6 +20,8 @@ import java.util.*;
 import java.util.function.Consumer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public class NameManager implements Listener {
 
@@ -74,8 +78,49 @@ public class NameManager implements Listener {
         fillGroupData();
     }
 
+    /**
+     * Refresh all names
+     */
     public void refresh() {
-        // TODO Refresh logic
+        refresh(null);
+    }
+
+    /**
+     * Refresh all names
+     *
+     * @param exclude The player to exclude from remove packet
+     */
+    public void refresh(Set<Player> exclude) {
+        Stream<? extends Player> players = Bukkit.getOnlinePlayers().stream();
+        final List<Object> excludeConnections;
+        if (exclude != null) {
+            excludeConnections = new ArrayList<>(exclude.size());
+            for (Player player : exclude) {
+                excludeConnections.add(TeamPacketSender.getConnection(player));
+            }
+            players = players.filter(player -> !exclude.contains(player));
+        } else {
+            excludeConnections = Collections.emptyList();
+        }
+        final List<Object> connections = players.map(TeamPacketSender::getConnection).collect(Collectors.toList());
+        for (String id : activeId) {
+            final Object packet = TeamPacketSender.getRemove(id);
+            TeamPacketSender.send(connections, packet);
+        }
+        connections.add(excludeConnections);
+        final Map<Name, List<String>> groupPlayers = new HashMap<>();
+        for (Player player : Bukkit.getOnlinePlayers()) {
+            final String group = plugin.getPermission().getPrimaryGroup(player);
+            final Name name = nameData.get(group);
+            if (name == null)
+                continue;
+            final List<String> playerList = groupPlayers.computeIfAbsent(name, k -> new ArrayList<>());
+            playerList.add(player.getName());
+        }
+        for (Map.Entry<Name, List<String>> entry : groupPlayers.entrySet()) {
+            final Object createPacket = TeamPacketSender.getCreate(entry.getKey(), entry.getValue());
+            TeamPacketSender.send(connections, createPacket);
+        }
     }
 
     private void fillGroupData() {
@@ -138,8 +183,8 @@ public class NameManager implements Listener {
     }
 
     @EventHandler(priority = EventPriority.MONITOR)
-    public void onJoin(PlayerJoinEvent ignored) {
-        refresh();
+    public void onJoin(PlayerJoinEvent e) {
+        refresh(Collections.singleton(e.getPlayer()));
     }
 
 }
