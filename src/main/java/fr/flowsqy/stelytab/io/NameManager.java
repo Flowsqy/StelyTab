@@ -31,6 +31,13 @@ public class NameManager implements Listener {
     private final Map<String, Name> nameData;
     private final List<String> activeId;
 
+    /**
+     * Constructor for NameManager
+     *
+     * @param plugin        The StelyTabPlugin instance
+     * @param configuration YamlConfiguration of the name data
+     * @param file          The file of the yaml configuration
+     */
     public NameManager(StelyTabPlugin plugin, YamlConfiguration configuration, File file) {
         this.plugin = plugin;
         this.configuration = configuration;
@@ -40,6 +47,14 @@ public class NameManager implements Listener {
         Bukkit.getPluginManager().registerEvents(this, plugin);
     }
 
+    /**
+     * Fill given list with all prefix
+     *
+     * @param prefixes The prefix list to fill
+     * @param current  The current prefix for the prefix
+     * @param length   The length of the prefix string
+     * @param limit    The limit of prefix count
+     */
     private static void getAllPrefixes(List<String> prefixes, String current, int length, int limit) {
         for (int i = 32; i < 127; i++) {
             if (prefixes.size() >= limit)
@@ -52,6 +67,12 @@ public class NameManager implements Listener {
         }
     }
 
+    /**
+     * Get prefix length
+     *
+     * @param prefixesCount the number of prefixes
+     * @return The length of the prefix
+     */
     private static int getPrefixLength(int prefixesCount) {
         int prefixLength = 0;
         int j = 1;
@@ -64,10 +85,16 @@ public class NameManager implements Listener {
         return prefixLength;
     }
 
+    /**
+     * Load the name data map
+     */
     public void load() {
-        fillGroupData();
+        fillNameData();
     }
 
+    /**
+     * Reload the config and refill the name data map
+     */
     public void reload() {
         this.nameData.clear();
         try {
@@ -75,7 +102,7 @@ public class NameManager implements Listener {
         } catch (IOException | InvalidConfigurationException e) {
             plugin.getLogger().log(Level.SEVERE, "Can not read the names.yml", e);
         }
-        fillGroupData();
+        fillNameData();
     }
 
     /**
@@ -125,7 +152,10 @@ public class NameManager implements Listener {
         }
     }
 
-    private void fillGroupData() {
+    /**
+     * Fill the name data map
+     */
+    private void fillNameData() {
         final Map<Integer, Set<Name>> tempData = new HashMap<>();
         final Logger logger = plugin.getLogger();
         final String awkwardKeyMessage = ChatColor.stripColor(plugin.getMessages().getMessage("config.awkward-key"));
