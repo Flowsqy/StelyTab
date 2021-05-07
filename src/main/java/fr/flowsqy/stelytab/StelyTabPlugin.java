@@ -3,8 +3,6 @@ package fr.flowsqy.stelytab;
 import fr.flowsqy.stelytab.commands.StelyTabCommand;
 import fr.flowsqy.stelytab.io.Messages;
 import fr.flowsqy.stelytab.io.NameManager;
-import fr.flowsqy.teampacketmanager.TeamPacketManager;
-import fr.flowsqy.teampacketmanager.TeamPacketManagerPlugin;
 import net.milkbowl.vault.permission.Permission;
 import org.bukkit.Bukkit;
 import org.bukkit.configuration.file.YamlConfiguration;
@@ -22,7 +20,6 @@ public class StelyTabPlugin extends JavaPlugin {
 
     private Messages messages;
     private Permission permission;
-    private TeamPacketManager teamPacketManager;
     private NameManager nameManager;
 
     @Override
@@ -54,9 +51,6 @@ public class StelyTabPlugin extends JavaPlugin {
             return;
         }
 
-        final TeamPacketManagerPlugin teamPacketManagerPlugin = JavaPlugin.getPlugin(TeamPacketManagerPlugin.class);
-        teamPacketManager = teamPacketManagerPlugin.getTeamPacketManager();
-
         nameManager = new NameManager(this, initFile(dataFolder, "names.yml"), new File(dataFolder, "names.yml"));
         nameManager.load();
 
@@ -87,10 +81,6 @@ public class StelyTabPlugin extends JavaPlugin {
 
     public Permission getPermission() {
         return permission;
-    }
-
-    public TeamPacketManager getTeamPacketManager() {
-        return teamPacketManager;
     }
 
     public NameManager getNameManager() {
