@@ -107,6 +107,7 @@ public class NameManager implements Listener {
             final Object packet = TeamPacketSender.getRemove(id);
             TeamPacketSender.send(connections, packet);
         }
+        activeId.clear();
         connections.add(excludeConnections);
         final Map<Name, List<String>> groupPlayers = new HashMap<>();
         for (Player player : Bukkit.getOnlinePlayers()) {
@@ -120,6 +121,7 @@ public class NameManager implements Listener {
         for (Map.Entry<Name, List<String>> entry : groupPlayers.entrySet()) {
             final Object createPacket = TeamPacketSender.getCreate(entry.getKey(), entry.getValue());
             TeamPacketSender.send(connections, createPacket);
+            activeId.add(entry.getKey().getId());
         }
     }
 
