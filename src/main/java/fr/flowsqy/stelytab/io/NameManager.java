@@ -131,11 +131,11 @@ public class NameManager implements Listener {
         }
         final List<Object> connections = players.map(TeamPacketSender::getConnection).collect(Collectors.toList());
         for (String id : activeId) {
-            final Object packet = TeamPacketSender.getRemove(id);
-            TeamPacketSender.send(connections, packet);
+            final Object removePacket = TeamPacketSender.getRemove(id);
+            TeamPacketSender.send(connections, removePacket);
         }
         activeId.clear();
-        connections.add(excludeConnections);
+        connections.addAll(excludeConnections);
         final Map<Name, List<String>> groupPlayers = new HashMap<>();
         for (Player player : Bukkit.getOnlinePlayers()) {
             final String group = plugin.getPermission().getPrimaryGroup(player);
@@ -176,7 +176,7 @@ public class NameManager implements Listener {
             String suffix = configurationSection.getString("suffix");
             if (suffix != null)
                 suffix = ChatColor.translateAlternateColorCodes('&', suffix);
-            final Name name = new Name(null, color, prefix, suffix);
+            final Name name = new Name(key, color, prefix, suffix);
             final Set<Name> dataSet = tempData.computeIfAbsent(priority, k -> new HashSet<>());
             dataSet.add(name);
         }
