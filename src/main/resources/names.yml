@@ -2,7 +2,6 @@
 #nomdugrade:
 #  priority: 0
 #  color: "6"
-#  displayname: ""
 #  prefix: ""
 #  suffix: ""
 #
@@ -10,7 +9,6 @@
 #'priority' est un entier qui indique la priorité du grade dans le tab.
 #Le groupe avec la plus grande priorité est en haut du tab et ainsi de suite par ordre décroissant.
 #'color' est la couleur du pseudo
-#'displayname' est le nom affiché dans la hotbar en mode spectateur (supporte les couleurs). %player% est remplacé par le nom du joueur
 #'prefix' est le préfix (supporte les couleurs)
 #'suffix' est le suffix (supporte les couleurs)
 #
