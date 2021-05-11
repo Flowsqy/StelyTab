@@ -4,7 +4,6 @@ version: ${project.version}
 main: fr.flowsqy.stelytab.StelyTabPlugin
 api-version: "1.13"
 depend:
-  - TeamPacketManager
   - Vault
 commands:
   stelytab:
