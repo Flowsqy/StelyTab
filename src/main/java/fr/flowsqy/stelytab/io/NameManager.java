@@ -28,6 +28,7 @@ public class NameManager implements Listener {
     private final YamlConfiguration configuration;
     private final File file;
     private final Map<String, Name> nameData;
+    private final List<Team> activeTeams;
     private final Scoreboard pluginScoreboard;
 
     /**
@@ -42,6 +43,7 @@ public class NameManager implements Listener {
         this.configuration = configuration;
         this.file = file;
         this.nameData = new HashMap<>();
+        this.activeTeams = new ArrayList<>();
         this.pluginScoreboard = Objects.requireNonNull(Bukkit.getScoreboardManager()).getNewScoreboard();
         Bukkit.getPluginManager().registerEvents(this, plugin);
     }
@@ -109,9 +111,10 @@ public class NameManager implements Listener {
      */
     public void refresh() {
         // Remove old teams
-        for (Team team : pluginScoreboard.getTeams()) {
+        for (Team team : activeTeams) {
             team.unregister();
         }
+        activeTeams.clear();
         // Map Name and players by permissions
         final Map<Name, List<String>> groupPlayers = new HashMap<>();
         for (Player player : Bukkit.getOnlinePlayers()) {
@@ -133,6 +136,7 @@ public class NameManager implements Listener {
             for (String player : entry.getValue()) {
                 team.addEntry(player);
             }
+            activeTeams.add(team);
         }
     }
 
@@ -198,6 +202,7 @@ public class NameManager implements Listener {
                 });
     }
 
+    @SuppressWarnings("unused")
     @EventHandler(priority = EventPriority.MONITOR)
     public void onJoin(PlayerJoinEvent e) {
         refresh();
