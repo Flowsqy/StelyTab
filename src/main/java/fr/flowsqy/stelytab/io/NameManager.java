@@ -2,7 +2,6 @@ package fr.flowsqy.stelytab.io;
 
 import fr.flowsqy.stelytab.StelyTabPlugin;
 import fr.flowsqy.stelytab.team.Name;
-import fr.flowsqy.stelytab.team.TeamPacketSender;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.configuration.ConfigurationSection;
@@ -13,6 +12,8 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerJoinEvent;
+import org.bukkit.scoreboard.Scoreboard;
+import org.bukkit.scoreboard.Team;
 
 import java.io.File;
 import java.io.IOException;
@@ -20,8 +21,6 @@ import java.util.*;
 import java.util.function.Consumer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 public class NameManager implements Listener {
 
@@ -29,7 +28,7 @@ public class NameManager implements Listener {
     private final YamlConfiguration configuration;
     private final File file;
     private final Map<String, Name> nameData;
-    private final List<String> activeId;
+    private final Scoreboard pluginScoreboard;
 
     /**
      * Constructor for NameManager
@@ -43,7 +42,7 @@ public class NameManager implements Listener {
         this.configuration = configuration;
         this.file = file;
         this.nameData = new HashMap<>();
-        this.activeId = new ArrayList<>();
+        this.pluginScoreboard = Objects.requireNonNull(Bukkit.getScoreboardManager()).getNewScoreboard();
         Bukkit.getPluginManager().registerEvents(this, plugin);
     }
 
@@ -109,33 +108,11 @@ public class NameManager implements Listener {
      * Refresh all names
      */
     public void refresh() {
-        refresh(null);
-    }
-
-    /**
-     * Refresh all names
-     *
-     * @param exclude The player to exclude from remove packet
-     */
-    public void refresh(Set<Player> exclude) {
-        Stream<? extends Player> players = Bukkit.getOnlinePlayers().stream();
-        final List<Object> excludeConnections;
-        if (exclude != null) {
-            excludeConnections = new ArrayList<>(exclude.size());
-            for (Player player : exclude) {
-                excludeConnections.add(TeamPacketSender.getConnection(player));
-            }
-            players = players.filter(player -> !exclude.contains(player));
-        } else {
-            excludeConnections = Collections.emptyList();
+        // Remove old teams
+        for (Team team : pluginScoreboard.getTeams()) {
+            team.unregister();
         }
-        final List<Object> connections = players.map(TeamPacketSender::getConnection).collect(Collectors.toList());
-        for (String id : activeId) {
-            final Object removePacket = TeamPacketSender.getRemove(id);
-            TeamPacketSender.send(connections, removePacket);
-        }
-        activeId.clear();
-        connections.addAll(excludeConnections);
+        // Map Name and players by permissions
         final Map<Name, List<String>> groupPlayers = new HashMap<>();
         for (Player player : Bukkit.getOnlinePlayers()) {
             final String group = plugin.getPermission().getPrimaryGroup(player);
@@ -145,10 +122,17 @@ public class NameManager implements Listener {
             final List<String> playerList = groupPlayers.computeIfAbsent(name, k -> new ArrayList<>());
             playerList.add(player.getName());
         }
+        // Create Teams
         for (Map.Entry<Name, List<String>> entry : groupPlayers.entrySet()) {
-            final Object createPacket = TeamPacketSender.getCreate(entry.getKey(), entry.getValue());
-            TeamPacketSender.send(connections, createPacket);
-            activeId.add(entry.getKey().getId());
+            final Name name = entry.getKey();
+            final Team team = pluginScoreboard.registerNewTeam(name.getId());
+            team.setDisplayName("");
+            team.setColor(name.getColor());
+            team.setPrefix(name.getPrefix());
+            team.setSuffix(name.getSuffix());
+            for (String player : entry.getValue()) {
+                team.addEntry(player);
+            }
         }
     }
 
@@ -216,7 +200,8 @@ public class NameManager implements Listener {
 
     @EventHandler(priority = EventPriority.MONITOR)
     public void onJoin(PlayerJoinEvent e) {
-        refresh(Collections.singleton(e.getPlayer()));
+        refresh();
+        e.getPlayer().setScoreboard(pluginScoreboard);
     }
 
 }
