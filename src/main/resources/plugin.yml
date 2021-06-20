@@ -1,31 +1,4 @@
 name: StelyTab
 author: Flowsqy
-version: ${project.version}
+version: "${project.version}"
 main: fr.flowsqy.stelytab.StelyTabPlugin
-api-version: "1.13"
-depend:
-  - TeamPacketManager
-  - Vault
-commands:
-  stelytab:
-    permission: stelytab.command
-    description: Root command for the StelyTab plugin
-    usage: /<command> <SubCommand>
-    aliases:
-      - tab
-permissions:
-  stelytab.command:
-    description: Root command permission
-  stelytab.command.*:
-    description: Permission that give access too all stelytab's commands
-    children:
-      stelytab.command.reload: true
-      stelytab.command.refresh: true
-  stelytab.command.reload:
-    description: Reload SubCommand permission
-    children:
-      stelytab.command: true
-  stelytab.command.refresh:
-    description: Refresh SubCommand permission
-    children:
-      stelytab.command: true
