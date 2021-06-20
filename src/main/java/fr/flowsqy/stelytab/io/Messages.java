@@ -12,7 +12,6 @@ public class Messages {
     public Messages(YamlConfiguration yamlConfiguration) {
         this.yamlConfiguration = yamlConfiguration;
         final String originalPrefix = yamlConfiguration.getString("prefix", "&7[&5StelyTab&7]&f");
-        assert originalPrefix != null;
         this.prefix = ChatColor.translateAlternateColorCodes('&', originalPrefix);
     }
 
