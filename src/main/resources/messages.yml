@@ -1,0 +1,17 @@
+prefix: "&7[&5StelyTab&7]&f"
+
+plugin:
+  no-perm-plugin: "%prefix% &cIl n'y a pas de plugin de permission"
+  group-not-supported: "%prefix% &cL'implémentation des permissions ne supporte pas les groupes. Installez un plugin qui gère cette fonctionnalité"
+
+config:
+  awkward-key: "La section %key% dans le fichier names.yml est étrange, ce n'est pas une section (un noeud) de configuration"
+
+command:
+  no-perm: "%prefix% &cTu n'as pas la permission de faire cette commande"
+  help:
+    reload: "%prefix% &6/tab reload"
+    refresh: "%prefix% &6/tab refresh"
+  success:
+    reload: "%prefix% &6Configuration rechargée"
+    refresh: "%prefix% &6Les noms ont été rafraichis"
