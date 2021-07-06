@@ -21,16 +21,13 @@ public class NameManager {
         }
     }
 
-    private static int getPrefixLength(int prefixesCount) {
-        int prefixLength = 0;
-        int j = 1;
-        for (int i = 1; i < prefixesCount; i++) {
-            if ((j *= 95) >= prefixesCount) {
-                prefixLength = i;
-                break;
+    private static int getPrefixLength(int prefixesNumber) {
+        for (int charCount = 1, prefixesCount = 1; charCount < 5 /* Max tries */; charCount++, prefixesCount *= 95 /* Possible chars */) {
+            if (prefixesCount >= prefixesNumber) {
+                return charCount;
             }
         }
-        return prefixLength;
+        return -1;
     }
 
     public void refresh() {
