@@ -1,13 +1,14 @@
 package fr.flowsqy.stelytab.io;
 
 import fr.flowsqy.stelytab.StelyTabPlugin;
+import fr.flowsqy.stelytab.name.Name;
 import org.bukkit.ChatColor;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scheduler.BukkitTask;
 
-import java.util.List;
+import java.util.HashMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -22,30 +23,6 @@ public class NameLoader {
         this.plugin = plugin;
     }
 
-    private static void getAllPrefixes(List<String> prefixes, String current, int length, int limit) {
-        for (int i = 32; i < 127; i++) {
-            if (prefixes.size() >= limit)
-                return;
-            final String prefix = current + (char) i;
-            if (prefix.length() < length)
-                getAllPrefixes(prefixes, prefix, length, limit);
-            else
-                prefixes.add(prefix);
-        }
-    }
-
-    private static int getPrefixLength(int prefixesCount) {
-        int prefixLength = 0;
-        int j = 1;
-        for (int i = 1; i < prefixesCount; i++) {
-            if ((j *= 95) >= prefixesCount) {
-                prefixLength = i;
-                break;
-            }
-        }
-        return prefixLength;
-    }
-
     public void load() {
         if (loadTask != null) {
             return;
@@ -54,14 +31,15 @@ public class NameLoader {
             @Override
             public void run() {
                 final YamlConfiguration configuration = plugin.initFile(plugin.getDataFolder(), FILE_NAME);
-                fillGroupData(configuration);
+                plugin.getNameManager().setup(fillGroupData(configuration));
 
                 loadTask = null;
             }
         }.runTaskAsynchronously(plugin);
     }
 
-    private void fillGroupData(YamlConfiguration configuration) {
+    private HashMap<String, PrioritizedName> fillGroupData(YamlConfiguration configuration) {
+        final HashMap<String, PrioritizedName> nameForGroup = new HashMap<>();
         final Logger logger = plugin.getLogger();
         final String awkwardKeyMessage = ChatColor.stripColor(plugin.getMessages().getMessage("config.awkward-key"));
         // Register all data by priority
@@ -85,8 +63,13 @@ public class NameLoader {
             if (displayName != null)
                 displayName = ChatColor.translateAlternateColorCodes('&', displayName);
 
-            // TODO Store all data
+            nameForGroup.put(key, new PrioritizedName(priority, new Name(color, prefix, suffix, displayName)));
         }
+
+        return nameForGroup;
+    }
+
+    public record PrioritizedName(int priority, Name name) {
     }
 
 }
