@@ -10,10 +10,10 @@ public class NameManager {
     // Prefix pattern : GroupsChars (Fix) PlayerInsidePriorityChars (Variable)
 
     private static void getAllPrefixes(List<String> prefixes, String current, int length, int limit) {
-        for (int i = 32; i < 127; i++) {
+        for (int charIndex = 32 /* Minimum index char */; charIndex < 127 /* Maximum index char */ ; charIndex++) {
             if (prefixes.size() >= limit)
                 return;
-            final String prefix = current + (char) i;
+            final String prefix = current + (char) charIndex;
             if (prefix.length() < length)
                 getAllPrefixes(prefixes, prefix, length, limit);
             else
