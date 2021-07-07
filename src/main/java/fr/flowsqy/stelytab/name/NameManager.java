@@ -2,23 +2,37 @@ package fr.flowsqy.stelytab.name;
 
 import fr.flowsqy.stelytab.io.NameLoader;
 
+import java.util.Arrays;
 import java.util.HashMap;
-import java.util.List;
 
 public class NameManager {
 
     // Prefix pattern : GroupsChars (Fix) PlayerInsidePriorityChars (Variable)
 
-    private static void getAllPrefixes(List<String> prefixes, String current, int length, int limit) {
-        for (int charIndex = 32 /* Minimum index char */; charIndex < 127 /* Maximum index char */ ; charIndex++) {
-            if (prefixes.size() >= limit)
-                return;
-            final String prefix = current + (char) charIndex;
-            if (prefix.length() < length)
-                getAllPrefixes(prefixes, prefix, length, limit);
-            else
-                prefixes.add(prefix);
+    private HashMap<Integer, String[]> groupsForPriority;
+    private HashMap<String, Name> nameForGroup;
+
+    private static String[] getAllPrefixes(byte length, int limit) {
+        if (length < 1 || limit < 1)
+            return new String[0];
+        final byte MIN_CHAR = 32;
+        final String[] prefixes = new String[limit];
+        final byte[] current = new byte[length--];
+        Arrays.fill(current, MIN_CHAR);
+        byte charCount = 0;
+        int prefixesCount = 0;
+        while (limit > prefixesCount) {
+            if (current[charCount] == Byte.MAX_VALUE) {
+                current[charCount] = MIN_CHAR;
+                current[--charCount]++;
+            } else if (charCount < length) {
+                charCount++;
+            } else {
+                prefixes[prefixesCount++] = new String(current);
+                current[charCount]++;
+            }
         }
+        return prefixes;
     }
 
     private static int getPrefixLength(int prefixesNumber) {
@@ -31,7 +45,6 @@ public class NameManager {
     }
 
     public void refresh() {
-
     }
 
     public void setup(HashMap<String, NameLoader.PrioritizedName> nameByGroupName) {
